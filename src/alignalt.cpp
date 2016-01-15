@@ -53,9 +53,9 @@ struct ZSortEntry
 
 	ZSortEntry()
 	{
-	
+
 	}
-	
+
 	ZSortEntry(
 		uint64_t const rzstart,
 		uint64_t const rzend,
@@ -71,13 +71,13 @@ struct ZSortEntry
 			switch ( cigops[i] )
 			{
 				case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
-					zlen++, seqlen++; 
+					zlen++, seqlen++;
 					break;
 				case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
-					zlen++, seqlen++; 
+					zlen++, seqlen++;
 					break;
 				case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
-					zlen++; 
+					zlen++;
 					break;
 				case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
 					seqlen++;
@@ -85,7 +85,7 @@ struct ZSortEntry
 				default:
 					break;
 			}
-		
+
 		if ( zend-zstart != zlen )
 		{
 			libmaus2::exception::LibMausException lme;
@@ -98,10 +98,10 @@ struct ZSortEntry
 			libmaus2::exception::LibMausException lme;
 			lme.getStream() << "seqend-seqstart =" << seqend-seqstart  << " != " << "seqlen=" << seqlen << '\n';
 			lme.finish();
-			throw lme;		
+			throw lme;
 		}
 	}
-	
+
 	uint64_t getZStart() const
 	{
 		return zstart;
@@ -111,27 +111,27 @@ struct ZSortEntry
 	{
 		return zend;
 	}
-	
+
 	std::pair < ZSortEntry, ZSortEntry > zsplit(uint64_t const zmid) const
 	{
 		// std::cerr << "Splitting " << *this << " at " << zmid << std::endl;
-	
+
 		uint64_t cit = 0;
 		uint64_t zlen = 0;
 		uint64_t seqlen = 0;
-		
+
 		while ( zlen != zmid-zstart )
 		{
 			switch ( cigops[cit++] )
 			{
 				case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
-					zlen++, seqlen++; 
+					zlen++, seqlen++;
 					break;
 				case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
-					zlen++, seqlen++; 
+					zlen++, seqlen++;
 					break;
 				case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
-					zlen++; 
+					zlen++;
 					break;
 				case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
 					seqlen++;
@@ -140,7 +140,7 @@ struct ZSortEntry
 					break;
 			}
 		}
-		
+
 		if ( !zreverse )
 		{
 			ZSortEntry left(
@@ -150,7 +150,7 @@ struct ZSortEntry
 				seq,
 				seqstart,
 				seqstart+seqlen,
-				std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops>(cigops.begin(),cigops.begin()+cit)	
+				std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops>(cigops.begin(),cigops.begin()+cit)
 			);
 			ZSortEntry right(
 				zmid,
@@ -161,7 +161,7 @@ struct ZSortEntry
 				seqend,
 				std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops>(cigops.begin()+cit,cigops.end())
 			);
-			
+
 			return std::pair < ZSortEntry, ZSortEntry >(left,right);
 		}
 		else
@@ -173,7 +173,7 @@ struct ZSortEntry
 				seq,
 				seqend-seqlen,
 				seqend,
-				std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops>(cigops.begin(),cigops.begin()+cit)	
+				std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops>(cigops.begin(),cigops.begin()+cit)
 			);
 			ZSortEntry right(
 				zmid,
@@ -184,11 +184,11 @@ struct ZSortEntry
 				seqend-seqlen,
 				std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops>(cigops.begin()+cit,cigops.end())
 			);
-		
+
 			return std::pair < ZSortEntry, ZSortEntry >(left,right);
 		}
 	}
-		
+
 	bool operator<(ZSortEntry const & O) const
 	{
 		if ( zreverse != O.zreverse )
@@ -254,12 +254,12 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 		std::string const fqfn = arginfo.getUnparsedRestArg(irestarg);
 
 		std::cerr << "\n" << fqfn << "\n\n";
-		
+
 		// open queries
 		libmaus2::aio::CheckedInputStream CIS(fqfn);
 		libmaus2::fastx::StreamFastQReaderWrapper queriesIn(CIS);
 		libmaus2::fastx::StreamFastQReaderWrapper::pattern_type pattern;
-		
+
 		uint64_t read = 0;
 		uint64_t aligned = 0;
 		libmaus2::util::Histogram maphist;
@@ -271,23 +271,23 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 			std::string const & t_sid   = pattern.sid;
 			std::string const & t_query = pattern.spattern;
 			std::string const & t_queryquality = pattern.quality;
-			
+
 			struct ScoreBucketEntry
 			{
 				uint64_t z;
 				libmaus2::alignment::BamLineInfo BLI;
-				
+
 				ScoreBucketEntry() : z(0), BLI()
 				{
-				
+
 				}
-				
+
 				ScoreBucketEntry(uint64_t const rz, libmaus2::alignment::BamLineInfo const & rBLI) : z(rz), BLI(rBLI)
 				{
-				
+
 				}
 			};
-			
+
 			struct ScoreBucketZComparator
 			{
 				bool operator()(ScoreBucketEntry const & A, ScoreBucketEntry const & B) const
@@ -307,7 +307,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 					else
 						return false;
 				}
-				
+
 				bool operator()(std::vector<ScoreBucketEntry> const & A, std::vector<ScoreBucketEntry> const & B) const
 				{
 					if ( ! A.size() )
@@ -318,15 +318,15 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 						return operator()(A.front(),B.front());
 				}
 			};
-			
+
 			// alignment vector lock
 			libmaus2::parallel::OMPLock BLIlock;
 			// all alignments vector
 			std::vector<ScoreBucketEntry> allBLIs;
-			
+
 			// maximum fragment start position considered
 			int64_t const looplimit = static_cast<int64_t>(t_query.size()) - static_cast<int64_t>(fraglen);
-			
+
 			#if defined(_OPENMP)
 			#pragma omp parallel for
 			#endif
@@ -346,13 +346,13 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 				// compute alignments
 				std::vector<libmaus2::alignment::BamLineInfo> BLIs;
 				aligner.align(sid,query,queryquality,mapped,BLIs);
-				
+
 				// store alignments
 				{
 					libmaus2::parallel::ScopeLock SL(BLIlock);
-				
+
 					for ( uint64_t i = 0; i < BLIs.size(); ++i )
-						if ( 
+						if (
 							BLIs[i].getFrontSoftClipping() <= clipthres
 							&&
 							BLIs[i].getBackSoftClipping() <= clipthres
@@ -366,8 +366,8 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 			// sort alignments by z (fragment start)
 			std::sort(allBLIs.begin(),allBLIs.end(),ScoreBucketZComparator());
 			std::vector< std::vector<ScoreBucketEntry> > scorebuckets;
-			
-			// sort alignments into buckets 
+
+			// sort alignments into buckets
 			uint64_t blow = 0;
 			while ( blow != allBLIs.size() )
 			{
@@ -375,22 +375,22 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 				uint64_t bhigh = blow;
 				while ( bhigh < allBLIs.size() && allBLIs[blow].z == allBLIs[bhigh].z )
 					++bhigh;
-				
+
 				// copy alignments to vector BLIs
-				uint64_t const zz = allBLIs[blow].z;	
+				uint64_t const zz = allBLIs[blow].z;
 				std::vector<libmaus2::alignment::BamLineInfo> BLIs;
 				for ( uint64_t i = blow; i < bhigh; ++i )
 					BLIs.push_back(allBLIs[i].BLI);
-								
+
 				blow = bhigh;
-				
+
 				// sort alignments into buckets, bucket is chosen by considering
 				// z value and mapping coordinate
 				for ( uint64_t i = 0; i < BLIs.size(); ++i )
 				{
 					int64_t ins = -1;
 					for ( uint64_t j = 0; j < scorebuckets.size(); ++j )
-						if ( 
+						if (
 							BLIs[i].refid == scorebuckets[j].back().BLI.refid
 							&&
 							absdif(
@@ -409,8 +409,8 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 					else
 						scorebuckets.push_back(std::vector<ScoreBucketEntry>(1,ScoreBucketEntry(zz,BLIs[i])));
 				}
-			
-				#if 0	
+
+				#if 0
 				if ( zz % 512 == 0 )
 					std::cerr << "zz=" << zz << "/" << (t_query.size()-fraglen+1) << " number of buckets " << scorebuckets.size() << std::endl;
 				#endif
@@ -419,7 +419,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 				if ( BLIs.size() )
 				{
 					aligned++;
-					
+
 					if ( BLIs.size() > 1 )
 					{
 						BLIs[0].encode(bamwr);
@@ -440,14 +440,14 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 					std::cerr << "[V] no alignments for " << sid << " of length " << query.size() << std::endl;
 					#endif
 				}
-				
+
 				// update mapping count histogram
-				maphist(BLIs.size());			
+				maphist(BLIs.size());
 			}
 
 			// reverse order if we mapped in the opposite direction
 			for ( uint64_t i = 0; i < scorebuckets.size(); ++i )
-				if ( 
+				if (
 					scorebuckets[i].size() &&
 					scorebuckets[i].front().BLI.pos > scorebuckets[i].back().BLI.pos
 				)
@@ -455,19 +455,19 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 
 			// sort by mapping coordinate
 			std::sort(scorebuckets.begin(),scorebuckets.end(),ScoreBucketCoordinateComparator());
-			
+
 			typedef std::pair<uint64_t,uint64_t> upair;
 			std::vector<upair> I;
 			uint64_t ilow = 0;
 
 			std::cerr << "\n" << std::string(1,' ') << t_sid << " (" << t_query.size() << ")" << " score buckets " << scorebuckets.size() << std::endl;
-			
+
 			// sort alignments into region buckets
 			uint64_t scorebucketdist = 10000;
 			while ( ilow != scorebuckets.size() )
 			{
 				uint64_t ihigh = ilow+1;
-				while ( 
+				while (
 					(ihigh < scorebuckets.size()) &&
 					// same ref seq
 					(scorebuckets[ihigh-1].back().BLI.refid == scorebuckets[ihigh].front().BLI.refid) &&
@@ -478,9 +478,9 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 					)
 				)
 					++ihigh;
-				
+
 				#if 0
-				if ( 
+				if (
 					Pbamheader->getRefIDName(scorebuckets[ilow].front().BLI.refid) == std::string("chr1") &&
 					scorebuckets[ilow].front().BLI.pos >= 155000000ll &&
 					scorebuckets[ihigh-1].back().BLI.pos <= 170000000ll
@@ -489,14 +489,14 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 				{
 					I.push_back(upair(ilow,ihigh));
 				}
-				
+
 				ilow = ihigh;
 			}
-			
-			//plot "ABC10_2_1_000044079600_C10_newbler_large_blastn_cpatch_gap5_consensus.fq_merged_4_0.txt" with lines title "1", 
-			//     "ABC10_2_1_000044079600_C10_newbler_large_blastn_cpatch_gap5_consensus.fq_merged_4_1.txt" with lines title "2", 
+
+			//plot "ABC10_2_1_000044079600_C10_newbler_large_blastn_cpatch_gap5_consensus.fq_merged_4_0.txt" with lines title "1",
+			//     "ABC10_2_1_000044079600_C10_newbler_large_blastn_cpatch_gap5_consensus.fq_merged_4_1.txt" with lines title "2",
 			//     "ABC10_2_1_000044079600_C10_newbler_large_blastn_cpatch_gap5_consensus.fq_merged_4_2.txt" with lines title "3"
-			
+
 			if ( I.size() )
 			{
 				std::vector<ZSortEntry> ZSEV;
@@ -524,24 +524,24 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 							zlow = std::min(zlow,z);
 							zhigh = std::max(zhigh,z);
 						}
-						
+
 				plotstr << "[" << zlow << " to " << zhigh << "] " << "[" << minscore << " to " << maxscore+30 << "]";
 				uint64_t p = 0;
 				uint64_t pfnid = 0;
-			
+
 				std::vector<std::string> datafns;
 				for ( uint64_t j = 0; j < I.size(); ++j )
 				{
 					std::map<int64_t,double> scoremap;
-				
+
 					std::cerr << std::string(2,' ') << std::string(80,'-') << std::endl;
-										
+
 					for ( uint64_t i = I[j].first; i < I[j].second; ++i )
 					{
 						double scoresum = 0;
 						for ( uint64_t j = 0; j < scorebuckets[i].size(); ++j )
 							scoresum += static_cast<double>(scorebuckets[i][j].BLI.score) / scorebuckets[i][j].BLI.seq.size();
-					
+
 						uint64_t offthres = fraglen;
 						uint64_t klow = 0;
 						while ( klow != scorebuckets[i].size() )
@@ -549,9 +549,9 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 							uint64_t khigh = klow+1;
 							while ( khigh != scorebuckets[i].size() && absdif(scorebuckets[i][khigh].z,scorebuckets[i][khigh-1].z) <= offthres )
 								++khigh;
-								
+
 							std::cerr << "klow=" << klow << " khigh=" << khigh << std::endl;
-							
+
 							if ( klow != 0 )
 								std::cerr << scorebuckets[i][klow-1].z << "," << scorebuckets[i][klow].z << std::endl;
 
@@ -576,12 +576,12 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 							if ( LEDR.getErrorRate() <= errrate )
 							{
 								libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,refsub,refq,80,LED.ta,LED.te,LEDR);
-							
-								std::cerr << "[V] error rate " << LEDR.getErrorRate() 
-									<< " zlow=" << zlow << " zend=" << zend << " zreverse=" << zreverse 
+
+								std::cerr << "[V] error rate " << LEDR.getErrorRate()
+									<< " zlow=" << zlow << " zend=" << zend << " zreverse=" << zreverse
 									<< " seq=" << Pbamheader->getRefIDName(seq) << " seqpos=" << seqpos << " seqlen=" << seqlen
 									<< std::endl;
-									
+
 								std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops> cigopvec;
 								libmaus2::lcs::LocalAlignmentTraceContainer const & trace = LED.getTrace();
 								for (
@@ -594,7 +594,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 										case libmaus2::lcs::LocalAlignmentTraceContainer::STEP_MATCH:
 											cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL);
 											break;
-										case libmaus2::lcs::LocalAlignmentTraceContainer::STEP_MISMATCH:						
+										case libmaus2::lcs::LocalAlignmentTraceContainer::STEP_MISMATCH:
 											cigopvec.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF);
 											break;
 										case libmaus2::lcs::LocalAlignmentTraceContainer::STEP_INS:
@@ -607,7 +607,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 											break;
 									}
 								}
-								
+
 								uint64_t seqclipleft = zreverse ? LEDR.a_clip_right : LEDR.a_clip_left;
 								uint64_t seqclipright = zreverse ? LEDR.a_clip_left : LEDR.a_clip_right;
 
@@ -625,7 +625,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 								std::ostringstream pfnstr;
 								pfnstr << fqfn << "_" << t_sid << "_" << j << "_" << (pfnid++) << "_" << (zend-zlow)-(LEDR.b_clip_left+LEDR.b_clip_right) << ".pairwise.fasta";
 								std::string const pfn = pfnstr.str();
-								
+
 								libmaus2::aio::OutputStreamInstance PFNCOS(pfn);
 								PFNCOS << ">" << Pbamheader->getRefIDName(seq) << "_" << seqpos+seqclipleft << "_" << seqpos+seqlen-seqclipright << "_" << zreverse << '\n';
 								PFNCOS << refsub.substr(LEDR.a_clip_left,refsub.size()-(LEDR.a_clip_left+LEDR.a_clip_right)) << '\n';
@@ -634,44 +634,44 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 								PFNCOS.flush();
 								//PFNCOS.close();
 							}
-								
+
 							klow = khigh;
 						}
 
-						std::cerr << std::string(3,' ') << "[" << i << "]=" 
-							<< scorebuckets[i].size() 
+						std::cerr << std::string(3,' ') << "[" << i << "]="
+							<< scorebuckets[i].size()
 							<< "\t"
 							// could be descending
 							<< scorebuckets[i].front().z << "," << scorebuckets[i].back().z
 							<< "\t"
 							// ascending coordinates as sorted that way
-							<< "(" 
-							<< Pbamheader->getRefIDName(scorebuckets[i].front().BLI.refid) 
+							<< "("
+							<< Pbamheader->getRefIDName(scorebuckets[i].front().BLI.refid)
 							<< "," << scorebuckets[i].front().BLI.pos
 							<< "," << scorebuckets[i].back().BLI.pos
 							<< ")"
 							<< "\t"
 							<< scoresum
 							<< std::endl;
-						
+
 						std::vector<ScoreBucketEntry> const & V = scorebuckets[i];
 						for ( uint64_t k = 0; k < V.size(); ++k )
 							scoremap[ V[k].z ] = V[k].BLI.score;
 					}
-					
+
 					typedef std::pair<int64_t,double> idtype;
 					std::vector<idtype> const ID(scoremap.begin(),scoremap.end());
 					std::vector<upair> IDintervals;
-					
+
 					uint64_t idlow = 0;
 					while ( idlow < ID.size() )
 					{
 						uint64_t idhigh = idlow+1;
 						while ( idhigh < ID.size() && ID[idhigh-1].first+1 == ID[idhigh].first )
 							++idhigh;
-						
+
 						IDintervals.push_back(upair(idlow,idhigh));
-						
+
 						idlow = idhigh;
 					}
 
@@ -681,21 +681,21 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 						gplfnstr << fqfn << "_" << t_sid << "_" << j << "_" << idi << ".txt";
 						std::string const gplfn = gplfnstr.str();
 						datafns.push_back(gplfn);
-					
+
 						plotstr << ((p++)==0?" ":",") << "\"" << gplfn << "\" with lines title \"";
-						
+
 						if ( idi == 0 )
-							plotstr 
+							plotstr
 								<< Pbamheader->getRefIDName(scorebuckets[I[j].first].front().BLI.refid)
-								<< "[" 
-								<< scorebuckets[I[j].first].front().BLI.pos << "-" 
+								<< "["
+								<< scorebuckets[I[j].first].front().BLI.pos << "-"
 								<<
-								scorebuckets[I[j].second-1].back().BLI.pos+fraglen 
+								scorebuckets[I[j].second-1].back().BLI.pos+fraglen
 								<< "]";
-						
+
 						plotstr
 							<< "\" ls " << (j+1);
-					
+
 						libmaus2::aio::OutputStreamInstance gplCOS(gplfn);
 						for ( uint64_t idii = IDintervals[idi].first; idii < IDintervals[idi].second; ++idii )
 						{
@@ -705,7 +705,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 						//gplCOS.close();
 					}
 				}
-				
+
 				plotstr << "\n";
 				std::string const plotseq = plotstr.str();
 
@@ -715,62 +715,62 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 				std::ostringstream epsfnstr;
 				epsfnstr << fqfn << "_" << t_sid << ".eps";
 				std::string const epsfn = epsfnstr.str();
-				
+
 				{
 				libmaus2::aio::OutputStreamInstance COS(gplfn);
 				COS << plotseq;
 				COS.flush();
 				}
 				// COS.close();
-				
+
 				std::ostringstream plotcmdstr;
 				plotcmdstr << "gnuplot < " << gplfn << " >" << epsfn;
 				std::string const plotcmd = plotcmdstr.str();
 				int r = system(plotcmd.c_str());
-				
+
 				if ( r != EXIT_SUCCESS )
 				{
 					std::cerr << plotcmd << " failed" << std::endl;
 				}
-				
+
 				std::ostringstream epstopdfstr;
 				epstopdfstr << "epstopdf " << epsfn;
 				std::string const epstopdf = epstopdfstr.str();
 				r = system(epstopdf.c_str());
-				
+
 				if ( r != EXIT_SUCCESS )
 				{
 					std::cerr << epstopdf << " failed" << std::endl;
 				}
 
 				std::sort(ZSEV.begin(),ZSEV.end());
-				
+
 				uint64_t zzid = 0;
-				
+
 				uint64_t zzlow = 0;
 				while ( zzlow != ZSEV.size() )
 				{
 					uint64_t zzhigh = zzlow;
 					while ( zzhigh != ZSEV.size() && ZSEV[zzhigh].zreverse == ZSEV[zzlow].zreverse )
 						++zzhigh;
-						
+
 					if ( zzlow == 0 && zzhigh != ZSEV.size() )
 						std::cerr << "[V] warning, contig maps in both directions." << std::endl;
 
 					std::deque<ZSortEntry> subvec(ZSEV.begin()+zzlow,ZSEV.begin()+zzhigh);
-						
+
 					std::cerr << std::string(80,'+') << std::endl;
 					for ( uint64_t i = 0; i < subvec.size(); ++i )
 						std::cerr << subvec[i] << std::endl;
-					
+
 					while ( subvec.size() )
 					{
 						// collect intervals starting at the same z value
 						uint64_t iend = 0;
 						uint64_t minend = subvec[0].getZEnd();
-						while ( 
-							iend != subvec.size() && 
-							subvec[iend].getZStart() == subvec[0].getZStart() 
+						while (
+							iend != subvec.size() &&
+							subvec[iend].getZStart() == subvec[0].getZStart()
 						)
 							++iend;
 
@@ -786,7 +786,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 								minend = std::min(minend,subvec[i].getZStart());
 								// std::cerr << "Set minend to " << minend << " for " << subvec[i] << std::endl;
 							}
-								
+
 						// std::cerr << "minend=" << minend << std::endl;
 
 						std::vector < ZSortEntry > writevec;
@@ -796,7 +796,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 							std::pair < ZSortEntry, ZSortEntry > ZP = subvec[i].zsplit(minend);
 
 							// std::cerr << ZP.first << std::endl;
-							
+
 							uint64_t const zlow  = ZP.first.zstart;
 							uint64_t const zend = ZP.first.zend;
 							bool const zreverse = ZP.first.zreverse;
@@ -814,7 +814,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 								::std::floor((errrate * std::max(refsub.size(),refq.size()))+0.5)
 							);
 							// libmaus2::lcs::LocalAlignmentPrint::printAlignmentLines(std::cerr,refsub,refq,80,LED.ta,LED.te,LEDR);
-							
+
 							if ( zreverse )
 							{
 								ZP.first.seqend -= LEDR.a_clip_left;
@@ -825,20 +825,20 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 								ZP.first.seqstart += LEDR.a_clip_left;
 								ZP.first.seqend -= LEDR.a_clip_right;
 							}
-							
+
 							writevec.push_back(ZP.first);
 
 							subvec[i] = ZP.second;
 						}
 
 						std::ostringstream mafnstr;
-						mafnstr << fqfn << "_" << t_sid 
+						mafnstr << fqfn << "_" << t_sid
 							<< "_" << std::setw(6) << std::setfill('0') << (zzid++) << std::setw(0)
 							<< "_" << std::setw(6) << std::setfill('0') << writevec[0].zstart << std::setw(0)
 							<< "_" << std::setw(6) << std::setfill('0') << writevec[0].zend << std::setw(0)
 							<< ".multi.fasta";
 						libmaus2::aio::OutputStreamInstance COS(mafnstr.str());
-						
+
 						{
 							uint64_t const zlow = writevec[0].zstart;
 							uint64_t const zend = writevec[0].zend;
@@ -846,12 +846,12 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 							COS << ">contig_" << zlow << "_" << zend << '\n';
 							COS << refq << '\n';
 						}
-						
-						
+
+
 						for ( uint64_t i = 0; i < writevec.size(); ++i )
 						{
 							ZSortEntry const & ZP = writevec[i];
-						
+
 							std::cerr << "[" << i << "]=" << writevec[i] << std::endl;
 
 							bool const zreverse = ZP.zreverse;
@@ -865,23 +865,23 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 							COS << ">region_" << Pbamheader->getRefIDName(seq) << "_" << seqpos << "_" << seqpos+seqlen << '\n';
 							COS << refsub << '\n';
 						}
-						
+
 						COS.flush();
 						// COS.close();
 
 						while ( subvec.size() && (subvec.front().zend==subvec.front().zstart) )
 							subvec.pop_front();
-							
+
 						std::sort(subvec.begin(),subvec.end());
 					}
-					
+
 					zzlow = zzhigh;
 				}
 			}
 
 			read += 1;
 		}
-		
+
 		// std::cerr << read << "\t" << aligned << "\t" << static_cast<double>(aligned)/read << std::endl;
 
 		{
@@ -898,7 +898,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 			}
 		}
 	}
-	
+
 	return EXIT_SUCCESS;
 }
 
@@ -907,7 +907,7 @@ int main(int argc, char * argv[])
 	try
 	{
 		libmaus2::util::ArgInfo const arginfo(argc, argv);
-		
+
 		if ( arginfo.restargs.size() < 1 )
 		{
 			std::cerr << "[E] usage: " << argv[0] << " <indexprefix>" << std::endl;
@@ -915,7 +915,7 @@ int main(int argc, char * argv[])
 		}
 
 		std::string const mode = arginfo.getValue<std::string>("mode","hwt");
-	
+
 		if ( mode == "hwt" )
 		{
 			return alignalt<libmaus2::lf::ImpCompactHuffmanWaveletLF>(arginfo,".hwt");

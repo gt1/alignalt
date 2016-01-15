@@ -16,8 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <libmaus/fastx/StreamFastAReader.hpp>
-#include <libmaus/regex/PosixRegex.hpp>
+#include <libmaus2/fastx/StreamFastAReader.hpp>
+#include <libmaus2/regex/PosixRegex.hpp>
 
 struct TypeAndCoordinates
 {
@@ -119,10 +119,10 @@ int main()
 {
 	try
 	{
-		libmaus::fastx::StreamFastAReaderWrapper SFQR(std::cin);
+		libmaus2::fastx::StreamFastAReaderWrapper SFQR(std::cin);
 		std::vector<std::string> patterns;
 		std::vector<std::string> names;
-		libmaus::fastx::StreamFastAReaderWrapper::pattern_type pat;
+		libmaus2::fastx::StreamFastAReaderWrapper::pattern_type pat;
 
 		while ( SFQR.getNextPatternUnlocked(pat) )
 		{

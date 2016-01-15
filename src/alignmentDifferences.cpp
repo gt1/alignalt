@@ -26,14 +26,14 @@ struct TypeAndCoordinates
 	int64_t low;
 	int64_t high;
 	std::string sequence;
-	
+
 	TypeAndCoordinates() : valid(false) {}
 	TypeAndCoordinates(
 		std::string rtype,
 		int64_t rlow,
 		int64_t rhigh
 	) : valid(true), type(rtype), low(rlow), high(rhigh) {}
-	
+
 	bool operator<(TypeAndCoordinates const & O) const
 	{
 		if ( valid != O.valid )
@@ -45,7 +45,7 @@ struct TypeAndCoordinates
 		else
 			return high < O.high;
 	}
-	
+
 	bool operator!=(TypeAndCoordinates const & O) const
 	{
 		return
@@ -55,7 +55,7 @@ struct TypeAndCoordinates
 				(O<*this)
 			);
 	}
-	
+
 	bool operator==(TypeAndCoordinates const & O) const
 	{
 		return !operator!=(O);
@@ -79,7 +79,7 @@ TypeAndCoordinates getTypeAndCoordinates(std::string s)
 			j = i;
 			break;
 		}
-		
+
 	s = s.substr(0,j);
 
 	std::vector < std::string::size_type > V;
@@ -88,7 +88,7 @@ TypeAndCoordinates getTypeAndCoordinates(std::string s)
 			V.push_back(i);
 	if ( V.size() < 2 )
 		return TypeAndCoordinates();
-	
+
 	std::string::size_type i0 = V[V.size()-2]+1;
 	std::string::size_type i1 = V[V.size()-1]+1;
 
@@ -98,20 +98,20 @@ TypeAndCoordinates getTypeAndCoordinates(std::string s)
 	for ( std::string::size_type i = i1; i < s.size(); ++i )
 		if ( ! isdigit(s[i]) )
 			return TypeAndCoordinates();
-	
+
 	std::istringstream istr1(std::string(s.begin()+i0,s.begin()+i1-1));
 	std::istringstream istr2(std::string(s.begin()+i1,s.end()));
-	
+
 	uint64_t u1;
 	istr1 >> u1;
 	uint64_t u2;
 	istr2 >> u2;
-	
+
 	if ( ! istr1 || istr1.peek() != std::istream::traits_type::eof() )
 		return TypeAndCoordinates();
 	if ( ! istr2 || istr2.peek() != std::istream::traits_type::eof() )
 		return TypeAndCoordinates();
-		
+
 	return TypeAndCoordinates(std::string(s.begin(),s.begin()+i0-1),u1,u2);
 }
 
@@ -129,14 +129,14 @@ int main()
 			patterns.push_back(pat.spattern);
 			names.push_back(pat.sid);
 		}
-		
-		for ( uint64_t i = 1; i < patterns.size(); ++i )	
+
+		for ( uint64_t i = 1; i < patterns.size(); ++i )
 			if ( patterns[i].size() != patterns[0].size() )
 			{
 				std::cerr << "The sequences do not have the same length." << std::endl;
 				return EXIT_FAILURE;
 			}
-			
+
 		if ( ! patterns.size() )
 		{
 			std::cerr << "no patterns found." << std::endl;
@@ -150,7 +150,7 @@ int main()
 		for ( uint64_t j = 0; j < patterns[0].size(); ++j )
 		{
 			bool keep = true;
-			
+
 			for ( uint64_t z = 0; z < patterns.size(); ++z )
 			{
 				bool isbase =
@@ -161,10 +161,10 @@ int main()
 					tolower(patterns[z][j]) == 't' ||
 					tolower(patterns[z][j]) == 'n'
 				);
-				
+
 				if ( isbase )
 				{
-				
+
 				}
 				else
 				{
@@ -172,7 +172,7 @@ int main()
 					keep = false;
 				}
 			}
-						
+
 			if ( keep )
 			{
 				char const ref = tolower(patterns[0][j]);
@@ -182,11 +182,11 @@ int main()
 						dif = true;
 				if ( dif )
 					D.insert(P[0]);
-			
+
 				for ( uint64_t z = 0; z < patterns.size(); ++z )
 					patterns[z][P[z]++] = toupper(patterns[z][j]);
 			}
-		}		
+		}
 
 		for ( uint64_t z = 0; z < patterns.size(); ++z )
 			patterns[z] = patterns[z].substr(0,P[z]);
@@ -202,7 +202,7 @@ int main()
 			typeset.insert(TC.type);
 			refseq = TC.sequence;
 		}
-		
+
 		std::map<TypeAndCoordinates,bool> sameexists;
 		bool allfoundsame = true;
 		for ( std::set<TypeAndCoordinates>::const_iterator ita = TCS.begin(); ita != TCS.end(); ++ita )
@@ -225,7 +225,7 @@ int main()
 			differentexists[*ita] = founddiff;
 			allfounddifferent = allfounddifferent && founddiff;
 		}
-		
+
 		std::ostringstream commentstr;
 		if ( TCS.size() == 1 )
 		{
@@ -244,10 +244,10 @@ int main()
 				for ( size_t i = 1; i < VTCS.size(); ++i )
 					sameseq = sameseq && VTCS[i].sequence == refseq;
 				commentstr << "multimapsingle:" << type << ":";
-				
+
 				for ( uint64_t i = 0; i < VTCS.size(); ++i )
 					commentstr << "[" << VTCS[i].low << "," << VTCS[i].high << "]";
-				
+
 				commentstr << ":sameseq=" << (sameseq?"yes":"no");
 			}
 			else if ( typeset.size() > 1 )
@@ -255,7 +255,7 @@ int main()
 				if ( typeset.size() == 2 )
 				{
 					assert ( TCS.size() >= 2 );
-					
+
 					if ( TCS.size() == 2 )
 					{
 						std::vector<TypeAndCoordinates> VTCS(TCS.begin(),TCS.end());
@@ -278,7 +278,7 @@ int main()
 						for ( uint64_t i = 0; i < VTCS.size(); ++i )
 							if ( VTCS[i].type == Vtypeset[0] )
 								commentstr << "[" << VTCS[i].low << "," << VTCS[i].high << "]";
-						
+
 						commentstr << ":" << Vtypeset[1] << ":";
 						for ( uint64_t i = 0; i < VTCS.size(); ++i )
 							if ( VTCS[i].type == Vtypeset[1] )
@@ -288,22 +288,22 @@ int main()
 				}
 			}
 		}
-	
+
 		bool sameseq = names.size()>1;
 		for ( std::set<TypeAndCoordinates>::const_iterator ita = TCS.begin(); ita != TCS.end(); ++ita )
 		{
 			sameseq = sameseq && ita->sequence == refseq;
 			// std::cerr << *ita << "\tsameexists=" << sameexists[*ita] << "\tdifferentexists=" << differentexists[*ita] << std::endl;
 		}
-					
-		std::cout 
+
+		std::cout
 			<< names[0] << "\t";
 		for ( std::set<uint64_t>::const_iterator ita = D.begin(); ita != D.end(); ++ita )
 			std::cout.put(patterns[0][*ita]);
 		std::cout.put('\t');
 		std::cout
 			<< patterns[0] << "\t" << commentstr.str() << "\n";
-		
+
 		for ( uint64_t z = 1; z < patterns.size(); ++z )
 		{
 			std::cout << names[z] << "\t";
@@ -317,20 +317,20 @@ int main()
 			for ( std::set<uint64_t>::const_iterator ita = D.begin(); ita != D.end(); ++ita )
 			{
 				uint64_t const p = *ita;
-			
-				// difference in other sequences	
+
+				// difference in other sequences
 				if ( s0[p] == so[p] )
 					std::cout.put('.');
 				// difference between ref and this
 				else
 					std::cout.put(so[p]);
-			
+
 				// is this difference common in all regions?
 				bool common = true;
 				for ( uint64_t j = 2; j < patterns.size(); ++j )
 					if ( patterns[j][p] != patterns[1][p] )
 						common = false;
-						
+
 				if ( common )
 					ncommon++;
 				else
@@ -349,15 +349,15 @@ int main()
 					++mat;
 				else
 					++mis;
-					
+
 			std::cout << (mat+mis) << "/" << mat << "/" << mis << "/" << static_cast<double>(mat)/(mat+mis) << "/" << ncommon << "/" << nlocal << "\t";
-			
+
 			for ( uint64_t i = 0; i < s0.size(); ++i )
 				if ( so[i] == s0[i] )
 					std::cout.put('.');
 				else
 					std::cout.put(so[i]);
-			
+
 			std::cout.put('\n');
 		}
 	}

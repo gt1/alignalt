@@ -44,27 +44,36 @@ int main(int argc, char *argv[])
 		if ( arginfo.restargs[0] == "-" )
 			reader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type("/dev/stdin")));
 		else
-			reader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type(arginfo.restargs[0])));			
-			
+			reader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type(arginfo.restargs[0])));
+
 		pattern_type pattern;
 		q_pattern_type q_pattern;
-		
+
 		std::cerr << "Parsing file...";
 		while ( reader->getNextPatternUnlocked(pattern) )
 		{
 			q_pattern.spattern = ::libmaus2::fastx::remapString(::libmaus2::fastx::mapString(pattern.spattern));
 			q_pattern.pattern = q_pattern.spattern.c_str();
 			q_pattern.sid = pattern.sid;
+
+			for ( uint64_t i = 0; i < q_pattern.sid.size(); ++i )
+				if ( isspace(q_pattern.sid[i]) )
+					q_pattern.sid[i] = '_';
+				#if 0
+				else if ( q_pattern.sid[i] == '=' )
+					q_pattern.sid[i] = '_';
+				#endif
+
 			q_pattern.plus = "";
 			q_pattern.quality = std::string(pattern.spattern.size(),'I');
-			
+
 			std::cout << q_pattern;
-		
+
 			if ( (pattern.getPatID() & (1024*1024-1)) == 0 )
 				std::cerr << "(" << (pattern.getPatID()/(1024*1024)) << "m)";
 		}
 		std::cerr << "done." << std::endl;
-		
+
 	}
 	catch(std::exception const & ex)
 	{

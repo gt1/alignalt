@@ -30,3 +30,7 @@ src/alignalt
 src/*.o
 src/alignmentDifferences
 stamp-h1
+bumpversion.sh
+lic
+src/a2q
+src/faextract

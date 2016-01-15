@@ -1,6 +1,6 @@
 /*
     alignalt
-    Copyright (C) 2014-2015 German Tischler
+    Copyright (C) 2014-2016 German Tischler
     Copyright (C) 2014-2015 Genome Research Limited
 
     This program is free software: you can redistribute it and/or modify

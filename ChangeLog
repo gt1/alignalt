@@ -1,3 +1,9 @@
+alignalt (0.0.6-1) unstable; urgency=medium
+
+  * improve fix analyse and realign programs 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 22 Jan 2016 17:16:44 +0100
+
 alignalt (0.0.5-1) unstable; urgency=medium
 
   * add analyse, fastatoupper and realign programs 

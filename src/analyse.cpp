@@ -177,9 +177,13 @@ int main(int argc, char * argv[])
 		std::ostringstream intvstr;
 		std::ostringstream datastr;
 		uint64_t prevend = 0;
+		uint64_t readoff = 0;
+
 		for ( uint64_t i = 0; i < Valgn.size(); ++i )
 		{
 			libmaus2::bambam::BamAlignment const & algn = *Valgn[i];
+
+			// interval on reference region
 			uint64_t const po = algn.getPos();
 			uint64_t const rl = algn.getReferenceLength();
 			libmaus2::math::IntegerInterval<int64_t> nintv(po,po+rl-1);
@@ -192,18 +196,26 @@ int main(int argc, char * argv[])
 			data = data.substr(algn.getFrontSoftClipping());
 			data = data.substr(0,data.size() - algn.getBackSoftClipping());
 
-			intvstr << algn.getName() << ":" << data << ":" << frontclipped << ":" << backclipped << ":" << nintv << ";";
 
 			algn.getCigarStats(cigstats,false);
 
 			if ( po != prevend )
 			{
 				datastr << ref.substr(prevend,po-prevend);
+				readoff += (po-prevend);
 			}
 
+			uint64_t const contigstart = readoff;
+			uint64_t const contigend = contigstart + data.size();
+
+			libmaus2::math::IntegerInterval<int64_t> rintv(contigstart,contigend-1);
+
 			datastr << data;
+			readoff += data.size();
 
 			prevend = po + rl;
+
+			intvstr << algn.getName() << ":" << data << ":" << frontclipped << ":" << backclipped << ":" << nintv << ":" << rintv << ";";
 		}
 
 		if ( prevend != ref.size() )

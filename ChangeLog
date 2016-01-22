@@ -1,3 +1,9 @@
+alignalt (0.0.5-1) unstable; urgency=medium
+
+  * add analyse, fastatoupper and realign programs 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Fri, 22 Jan 2016 14:10:47 +0100
+
 alignalt (0.0.4-1) unstable; urgency=medium
 
   * update to libmaus2 version 2.0.115

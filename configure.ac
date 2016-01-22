@@ -1,4 +1,4 @@
-AC_INIT(alignalt,0.0.4,[gt1@sanger.ac.uk],[alignalt],[http://www.sanger.ac.uk])
+AC_INIT(alignalt,0.0.5,[gt1@sanger.ac.uk],[alignalt],[http://www.sanger.ac.uk])
 AC_CANONICAL_SYSTEM
 AC_PROG_LIBTOOL
 

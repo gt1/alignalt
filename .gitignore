@@ -34,3 +34,7 @@ bumpversion.sh
 lic
 src/a2q
 src/faextract
+src/analyse
+src/fastatoupper
+src/realign
+

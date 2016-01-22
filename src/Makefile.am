@@ -1,5 +1,5 @@
 #
-bin_PROGRAMS = alignalt alignmentDifferences faextract a2q
+bin_PROGRAMS = alignalt alignmentDifferences faextract a2q analyse realign fastatoupper
 
 alignalt_SOURCES = alignalt.cpp
 alignalt_LDADD = ${AM_LDADD}
@@ -20,3 +20,18 @@ a2q_SOURCES = a2q.cpp
 a2q_LDADD = ${AM_LDADD}
 a2q_LDFLAGS = ${AM_LDFLAGS}
 a2q_CPPFLAGS = ${AM_CPPFLAGS}
+
+analyse_SOURCES = analyse.cpp
+analyse_LDADD = ${AM_LDADD}
+analyse_LDFLAGS = ${AM_LDFLAGS}
+analyse_CPPFLAGS = ${AM_CPPFLAGS}
+
+realign_SOURCES = realign.cpp
+realign_LDADD = ${AM_LDADD}
+realign_LDFLAGS = ${AM_LDFLAGS}
+realign_CPPFLAGS = ${AM_CPPFLAGS}
+
+fastatoupper_SOURCES = fastatoupper.cpp
+fastatoupper_LDADD = ${AM_LDADD}
+fastatoupper_LDFLAGS = ${AM_LDFLAGS}
+fastatoupper_CPPFLAGS = ${AM_CPPFLAGS}

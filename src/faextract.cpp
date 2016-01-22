@@ -29,6 +29,7 @@ int main(int argc, char * argv[])
 		std::string const fafn = arginfo.restargs.at(0);
 		std::string const faidxfn = fafn + ".fai";
 		std::string const srange = arginfo.restargs.at(1);
+		bool const toup = arginfo.getValue<int>("toupper",false);
 		libmaus2::bambam::CramRange range(srange);
 		libmaus2::aio::InputStreamInstance idxCIS(faidxfn);
 		libmaus2::fastx::FastAIndex faidx(idxCIS);
@@ -52,7 +53,7 @@ int main(int argc, char * argv[])
 		}
 
 		libmaus2::aio::InputStreamInstance faistr(fafn);
-		libmaus2::autoarray::AutoArray<char> const seq = faidx.readSequence(faistr, seqtoid.find(rangeseq)->second);
+		libmaus2::autoarray::AutoArray<char> seq = faidx.readSequence(faistr, seqtoid.find(rangeseq)->second);
 
 		int64_t const zstart = static_cast<int64_t>(range.rangestart)-1;
 		int64_t const zend = static_cast<int64_t>(range.rangeend)-1;
@@ -67,6 +68,9 @@ int main(int argc, char * argv[])
 		}
 
 		std::cout << ">" << srange << "\n";
+		if ( toup )
+			for ( int64_t i = 0; i < zlen; ++i )
+				seq[zstart+i] = toupper(seq[zstart+i]);
 		std::cout.write(seq.begin()+zstart,zlen);
 		std::cout.put('\n');
 		std::cout.flush();

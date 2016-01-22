@@ -22,6 +22,7 @@
 #include <libmaus2/bambam/BamAlignmentEncoderBase.hpp>
 #include <libmaus2/bambam/BamAlignment.hpp>
 #include <libmaus2/bambam/BamBlockWriterBaseFactory.hpp>
+#include <libmaus2/math/IntegerInterval.hpp>
 
 struct Contig
 {
@@ -31,12 +32,15 @@ struct Contig
 	std::string backclipped;
 	uint64_t low;
 	uint64_t high;
+	uint64_t clow;
+	uint64_t chigh;
 
 	Contig(std::string const & rname = std::string(), std::string const & rdata = std::string(),
 		std::string const & rfrontclipped = std::string(),
 		std::string const & rbackclipped = std::string(),
-		uint64_t const rlow = 0, uint64_t const rhigh = 0)
-	: name(rname), data(rdata), frontclipped(rfrontclipped), backclipped(rbackclipped), low(rlow), high(rhigh)
+		uint64_t const rlow = 0, uint64_t const rhigh = 0,
+		uint64_t const rclow = 0, uint64_t const rchigh = 0)
+	: name(rname), data(rdata), frontclipped(rfrontclipped), backclipped(rbackclipped), low(rlow), high(rhigh), clow(rclow), chigh(rchigh)
 	{
 
 	}
@@ -44,7 +48,7 @@ struct Contig
 
 std::ostream & operator<<(std::ostream & out, Contig const & contig)
 {
-	out << "Contig(" << contig.name << "," << contig.data << "," << contig.frontclipped << "," << contig.backclipped << "," << contig.low << "," << contig.high << ")";
+	out << "Contig(" << contig.name << "," << contig.data << "," << contig.frontclipped << "," << contig.backclipped << "," << contig.low << "," << contig.high << "," << contig.clow << "," << contig.chigh << ")";
 	return out;
 }
 
@@ -72,6 +76,29 @@ struct Compactify
 		return V;
 	}
 };
+
+std::vector<std::string> tokenize(std::string const & sintv, char const br = ';')
+{
+	std::vector<std::string> subtokens;
+	uint64_t ilow = 0;
+	while ( ilow < sintv.size() )
+	{
+		uint64_t const ihigh = sintv.find(br,ilow);
+
+		if ( ihigh == std::string::npos )
+		{
+			subtokens.push_back(sintv.substr(ilow));
+			ilow = sintv.size();
+		}
+		else
+		{
+			subtokens.push_back(sintv.substr(ilow,ihigh-ilow));
+			ilow = ihigh+1;
+		}
+	}
+
+	return subtokens;
+}
 
 struct Info
 {
@@ -113,62 +140,34 @@ struct Info
 
 			std::string const sintv = tokens[5];
 
-			uint64_t tlow = 0;
-			while ( tlow < sintv.size() )
+			std::vector<std::string> subtokens = tokenize(sintv,';');
+
+			for ( uint64_t j = 0; j < subtokens.size(); ++j )
 			{
-				while ( tlow < sintv.size() && sintv[tlow] == ';' )
-					++tlow;
+				std::string const subt = subtokens[j];
+				std::vector<std::string> subsubtokens = tokenize(subt,':');
 
-				if ( tlow < sintv.size() )
+				#if 0
+				for ( uint64_t k = 0; k < subsubtokens.size(); ++k )
+					std::cerr << "[" << k << "]=" << subsubtokens[k] << std::endl;
+				#endif
+
+				if ( subsubtokens.size() >= 6 )
 				{
-					uint64_t thigh = tlow;
-					while ( thigh < sintv.size() && sintv[thigh] != ';' )
-						++thigh;
+					std::string const contig = subsubtokens[0];
+					std::string const contigdata = subsubtokens[1];
+					std::string const frontclipped = subsubtokens[2];
+					std::string const backclipped = subsubtokens[3];
 
-					if ( thigh - tlow > 2 )
-					{
-						std::string sub = sintv.substr(tlow,thigh-tlow);
+					std::istringstream istr0(subsubtokens[4]);
+					libmaus2::math::IntegerInterval<int64_t> intv0(istr0);
+					//std::cerr << intv0 << std::endl;
 
-						if ( sub.find(':') != std::string::npos )
-						{
-							std::string const contig = sub.substr(0,sub.find(':'));
-							// std::cerr << "contig=" << contig << std::endl;
+					std::istringstream istr1(subsubtokens[5]);
+					libmaus2::math::IntegerInterval<int64_t> intv1(istr1);
+					//std::cerr << intv1 << std::endl;
 
-							sub = sub.substr(sub.find(':')+1);
-
-							if ( sub.find(':') != std::string::npos )
-							{
-								std::string const contigdata = sub.substr(0,sub.find(':'));
-								sub = sub.substr(sub.find(':')+1);
-								if ( sub.find(':') != std::string::npos )
-								{
-									std::string const frontclipped = sub.substr(0,sub.find(':'));
-									sub = sub.substr(sub.find(':')+1);
-
-									if ( sub.find(':') != std::string::npos )
-									{
-										std::string const backclipped = sub.substr(0,sub.find(':'));
-										sub = sub.substr(sub.find(':')+1);
-
-										sub = sub.substr(1);
-										sub = sub.substr(0,sub.size()-1);
-
-										if ( sub.find(',') != std::string::npos )
-										{
-											size_t const pos = sub.find(',');
-											std::string const sfrom = sub.substr(0,pos);
-											std::string const sto = sub.substr(pos+1);
-											uint64_t const ufrom = atol(sfrom.c_str());
-											uint64_t const uto = atol(sto.c_str());
-											Vintv.push_back(Contig(contig,contigdata,frontclipped,backclipped,ufrom,uto+1));
-										}
-									}
-								}
-							}
-						}
-					}
-
-					tlow = thigh;
+					Vintv.push_back(Contig(contig,contigdata,frontclipped,backclipped,intv0.from,intv0.to+1,intv1.from,intv1.to+1));
 				}
 			}
 
@@ -284,17 +283,29 @@ int main(int argc, char * argv[])
 			// clone line
 			std::string const oth = Vseq[z].second;
 			// info
-			Info const & info = Vinfo[z-1];
+			Info & info = Vinfo[z-1];
 			// check name matches
 			assert ( Vseq[z].first == Vinfo[z-1].seqid );
 
-			std::map<uint64_t,uint64_t> contigstart;
+			std::map<uint64_t,uint64_t> contigstart, contigend;
+
+			struct ContigInterval
+			{
+				uint64_t ciglow;
+				uint64_t cighigh;
+
+				uint64_t startrefpos;
+				uint64_t startcpos;
+			};
+
+			std::map<uint64_t,ContigInterval> contigintv;
+
 			for ( uint64_t i = 0; i < info.Vintv.size(); ++i )
 			{
 				Contig const & contig = info.Vintv[i];
-				contigstart[contig.low] = i;
+				contigstart[contig.clow] = i;
+				contigend[contig.chigh] = i;
 			}
-			std::map<uint64_t,uint64_t> contigcigstart;
 
 			#if 0
 			std::cerr << "---" << std::endl;
@@ -306,6 +317,9 @@ int main(int argc, char * argv[])
 
 			std::vector < libmaus2::bambam::BamFlagBase::bam_cigar_ops > cigops;
 			uint64_t refpos = 0;
+			uint64_t cpos = 0;
+			int64_t activecontig = -1;
+			std::vector<std::string> recs(info.Vintv.size(),std::string());
 
 			for ( uint64_t i = 0; i < ref.size(); ++i )
 			{
@@ -315,19 +329,31 @@ int main(int argc, char * argv[])
 				if ( ! refpad )
 					assert ( ref[i] == unpaddedref[refpos] );
 
-				if (
-					contigstart.find(refpos) != contigstart.end()
-				)
+				if ( contigend.find(cpos) != contigend.end() )
 				{
-					// contig identifier
-					uint64_t const contigid = contigstart.find(refpos)->second;
-					// position on cig vector corresponding to refpos
-					if ( contigcigstart.find(contigid) == contigcigstart.end() )
-					{
-						//std::cerr << "contig id " << contigid << " cig start " << cigops.size() << " refpos=" << refpos << std::endl;
-						contigcigstart[contigid] = cigops.size();
-					}
+					uint64_t const contigid = contigend.find(cpos)->second;
+					//std::cerr << "setting end for contig " << contigid << std::endl;
+					if ( contigintv[contigid].ciglow == contigintv[contigid].cighigh )
+						contigintv[contigid].cighigh = cigops.size();
+					activecontig = -1;
 				}
+
+				if ( contigstart.find(cpos) != contigstart.end() )
+				{
+					uint64_t const contigid = contigstart.find(cpos)->second;
+					if ( contigintv.find(contigid) == contigintv.end() )
+					{
+						contigintv[contigid] = ContigInterval();
+						contigintv[contigid].ciglow = cigops.size();
+						contigintv[contigid].cighigh = cigops.size();
+						contigintv[contigid].startrefpos = refpos;
+						contigintv[contigid].startcpos = cpos;
+					}
+					activecontig = contigid;
+				}
+
+				if ( (! othpad) && (activecontig != -1) )
+					recs[activecontig] += oth[i];
 
 				if ( refpad && othpad )
 				{
@@ -337,6 +363,7 @@ int main(int argc, char * argv[])
 				else if ( (!othpad) && refpad )
 				{
 					cigops.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS);
+					cpos += 1;
 				}
 				// delete character from reference
 				else if ( (!refpad) && othpad )
@@ -348,6 +375,7 @@ int main(int argc, char * argv[])
 				{
 					cigops.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL);
 					refpos += 1;
+					cpos += 1;
 				}
 				else
 				{
@@ -356,61 +384,50 @@ int main(int argc, char * argv[])
 					assert ( ref[i] != oth[i] );
 					cigops.push_back(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF);
 					refpos += 1;
+					cpos += 1;
 				}
 			}
 
-			assert ( contigcigstart.size() == contigstart.size() );
+			if ( contigend.find(cpos) != contigend.end() )
+			{
+				uint64_t const contigid = contigend.find(cpos)->second;
+				//std::cerr << "setting end for contig " << contigid << std::endl;
+				if ( contigintv[contigid].ciglow == contigintv[contigid].cighigh )
+					contigintv[contigid].cighigh = cigops.size();
+				activecontig = -1;
+			}
+
 			assert ( contigstart.size() == info.Vintv.size() );
 
 			for ( uint64_t c = 0; c < info.Vintv.size(); ++c )
 			{
-				assert ( contigcigstart.find(c) != contigcigstart.end() );
-				uint64_t cigp = contigcigstart.find(c)->second;
-				Contig const & contig = info.Vintv[c];
-				uint64_t reflen = contig.high - contig.low;
-				uint64_t readlen = contig.data.size();
-				std::vector < libmaus2::bambam::BamFlagBase::bam_cigar_ops > cigsub;
+				//std::cerr << "c=" << c << " .size()=" << info.Vintv.size() << std::endl;
 
-				uint64_t refc = 0;
-				uint64_t readc = 0;
-
-				while ( readc < readlen )
-				{
-					libmaus2::bambam::BamFlagBase::bam_cigar_ops const op = cigops[cigp++];
-					cigsub.push_back(op);
-
-					// std::cerr << op << " readc=" << readc << " refc=" << refc << std::endl;
-
-					switch ( op )
-					{
-						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
-							readc += 1;
-							break;
-						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDEL:
-							refc += 1;
-							break;
-						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
-							// std::cerr << unpaddedref[pp + refc] << " " << contig.data[readc] << std::endl;
-							assert ( unpaddedref[contig.low + refc] == contig.data [ readc ] );
-							readc += 1;
-							refc += 1;
-							break;
-						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
-							assert ( unpaddedref[contig.low + refc] != contig.data [ readc ] );
-							readc += 1;
-							refc += 1;
-							break;
-						default:
-							break;
-					}
-				}
-
-				// std::cerr << std::endl;
+				assert ( contigintv.find(c) != contigintv.end() );
+				ContigInterval const & CI = contigintv.find(c)->second;
+				assert ( recs[c] == info.Vintv[c].data );
+				Contig & contig = info.Vintv[c];
 
 				std::vector < std::pair<libmaus2::bambam::BamFlagBase::bam_cigar_ops,uint64_t> > const cigcompact =
 					Compactify::compactify<
 						std::vector<libmaus2::bambam::BamFlagBase::bam_cigar_ops>::const_iterator
-					>(cigsub.begin(),cigsub.end());
+					>(cigops.begin() + CI.ciglow,cigops.begin() + CI.cighigh);
+
+				uint64_t cc = 0;
+				for ( uint64_t i = 0; i < cigcompact.size(); ++i )
+					switch ( cigcompact[i].first )
+					{
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CINS:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL:
+						case libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF:
+							cc += cigcompact[i].second;
+							break;
+						default:
+							break;
+					}
+
+				//std::cerr << "cc=" << cc << " expt=" << info.Vintv[c].data.size() << std::endl;
+				assert ( cc == info.Vintv[c].data.size() );
 
 				std::string const bamname =
 					info.seqid + "_" + contig.name;
@@ -451,7 +468,7 @@ int main(int argc, char * argv[])
 					bamname.begin(),
 					bamname.size(),
 					0 /* ref id */,
-					contig.low,
+					CI.startrefpos,
 					255, /* mapping quality */
 					0 /* flags */,
 					cigfinal.begin(),
@@ -471,30 +488,14 @@ int main(int argc, char * argv[])
 				outalgn.checkAlignment();
 
 				blockwriter->writeAlignment(outalgn);
-
-				#if 0
-				::libmaus2::bambam::BamFormatAuxiliary aux;
-				outalgn.formatAlignment(std::cerr, bamheader, aux);
-				std::cerr << std::endl;
-				#endif
-
-				#if 0
-				uint64_t cigrp = 0;
-				for ( uint64_t i = 0; i < cigcompact.size(); ++i )
-					for ( uint64_t j = 0; j < cigcompact[i].second; ++j )
-						assert ( cigsub[cigrp++] == cigcompact[i].first );
-				#endif
-
-				// std::cerr << "refc=" << refc << " exp=" << contig.high-contig.low << std::endl;
 			}
-
-			// std::cerr << "refpos=" << refpos << std::endl;
 		}
 
 		blockwriter.reset();
 	}
 	catch(std::exception const & ex)
 	{
-
+		std::cerr << ex.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 }

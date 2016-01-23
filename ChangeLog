@@ -1,3 +1,9 @@
+alignalt (0.0.7-1) unstable; urgency=medium
+
+  * add pileup program 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Sat, 23 Jan 2016 14:54:26 +0100
+
 alignalt (0.0.6-1) unstable; urgency=medium
 
   * improve fix analyse and realign programs 

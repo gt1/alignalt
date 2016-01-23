@@ -1,5 +1,5 @@
 #
-bin_PROGRAMS = alignalt alignmentDifferences faextract a2q analyse realign fastatoupper
+bin_PROGRAMS = alignalt alignmentDifferences faextract a2q analyse realign fastatoupper pileup
 
 alignalt_SOURCES = alignalt.cpp
 alignalt_LDADD = ${AM_LDADD}
@@ -35,3 +35,8 @@ fastatoupper_SOURCES = fastatoupper.cpp
 fastatoupper_LDADD = ${AM_LDADD}
 fastatoupper_LDFLAGS = ${AM_LDFLAGS}
 fastatoupper_CPPFLAGS = ${AM_CPPFLAGS}
+
+pileup_SOURCES = pileup.cpp
+pileup_LDADD = ${AM_LDADD}
+pileup_LDFLAGS = ${AM_LDFLAGS}
+pileup_CPPFLAGS = ${AM_CPPFLAGS}

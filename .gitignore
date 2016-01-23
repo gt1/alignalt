@@ -37,4 +37,4 @@ src/faextract
 src/analyse
 src/fastatoupper
 src/realign
-
+src/pileup

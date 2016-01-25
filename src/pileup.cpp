@@ -26,7 +26,7 @@ int main(int argc, char * argv[])
 		libmaus2::util::ArgInfo const arginfo(argc,argv);
 		libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type Pdec(libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(arginfo));
 		libmaus2::bambam::BamAlignmentDecoder & decoder = Pdec->getDecoder();
-		libmaus2::bambam::BamHeader const & header = decoder.getHeader();		
+		libmaus2::bambam::BamHeader const & header = decoder.getHeader();
 		std::vector< libmaus2::bambam::PileVectorElement > GPV;
 
 		assert ( header.getNumRef() >= 1 );
@@ -44,47 +44,47 @@ int main(int argc, char * argv[])
 					GPV.push_back(PV[i]);
 			}
 		}
-		
+
 		std::sort(GPV.begin(),GPV.end());
-		
+
 		uint64_t ilow = 0;
 		int64_t const minborderdist = 10;
 		uint64_t const mindepth = 5;
 		uint64_t next = 0;
-		
+
 		std::cout << ">" << refname << "\n";
-		
+
 		while ( ilow < GPV.size() )
 		{
 			uint64_t ihigh = ilow+1;
-			
-			while ( 
+
+			while (
 				ihigh < GPV.size() &&
 				GPV[ilow].refid == GPV[ihigh].refid &&
 				GPV[ilow].refpos == GPV[ihigh].refpos &&
-				GPV[ilow].predif == GPV[ihigh].predif 
+				GPV[ilow].predif == GPV[ihigh].predif
 			)
 				++ihigh;
-			
+
 			std::vector < libmaus2::bambam::PileVectorElement > GPVfilt;
 			for ( uint64_t i = ilow; i < ihigh; ++i )
 				if ( GPV[i].readpos >= minborderdist && GPV[i].readbackpos >= minborderdist )
 					GPVfilt.push_back(GPV[i]);
-			
+
 			if ( GPVfilt.size() >= mindepth && GPVfilt.size() )
 			{
 				std::map<char,uint64_t> S;
-				
+
 				for ( uint64_t i = 0; i < GPVfilt.size(); ++i )
 					S [ GPVfilt[i].sym ] ++;
-					
+
 				std::vector < std::pair<uint64_t,char> > SV;
 				for ( std::map<char,uint64_t>::const_iterator ita = S.begin(); ita != S.end(); ++ita )
 					SV.push_back(std::pair<uint64_t,char>(ita->second,ita->first) );
-				
+
 				std::sort(SV.begin(),SV.end());
 				std::reverse(SV.begin(),SV.end());
-				
+
 				#if 0
 				std::cerr << std::string(80,'-') << std::endl;
 				for ( uint64_t i = 0; i < GPVfilt.size(); ++i )
@@ -92,7 +92,7 @@ int main(int argc, char * argv[])
 				for ( uint64_t i = 0; i < SV.size(); ++i )
 					std::cerr << SV[i].second << " " << SV[i].first << std::endl;
 				#endif
-				
+
 				if ( SV.size() == 1 && GPVfilt[0].predif == 0 )
 				{
 					while ( next < GPVfilt[0].refpos )
@@ -100,9 +100,9 @@ int main(int argc, char * argv[])
 						std::cout.put('N');
 						next += 1;
 					}
-					
+
 					std::cerr << GPVfilt[0].refpos << "\t" << GPVfilt[0].predif << "\t" << SV[0].second << "\t" << SV[0].first << std::endl;
-					
+
 					std::cout.put(SV[0].second);
 					next += 1;
 				}

@@ -130,7 +130,7 @@ struct Info
 			}
 		}
 
-		if ( tokens.size() == 6 )
+		if ( tokens.size() >= 6 )
 		{
 			#if 0
 			for ( uint64_t i = 0; i < tokens.size(); ++i )

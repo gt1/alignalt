@@ -73,8 +73,14 @@ int main(int argc, char * argv[])
 			return EXIT_FAILURE;
 		}
 
+		char const * const faclip[] {
+			".fa", ".fasta", 0
+		};
+
 		std::string const reffn = arginfo.getUnparsedValue("reference",std::string());
 		std::string const seqid = arginfo.getUnparsedValue("seqid",std::string());
+
+		std::string const refclipfn = libmaus2::util::OutputFileNameTools::endClip(reffn,&faclip[0]);
 
 		libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type Pdec(libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(arginfo));
 		libmaus2::bambam::BamAlignmentDecoder & decoder = Pdec->getDecoder();
@@ -138,12 +144,14 @@ int main(int argc, char * argv[])
 
 		Valgn.resize(out);
 
+		#if 0
 		for ( uint64_t i = 0; i < Valgn.size(); ++i )
 		{
 			libmaus2::bambam::BamAlignment const & algn = *Valgn[i];
 			uint64_t const po = algn.getPos();
 			uint64_t const rl = algn.getReferenceLength();
 		}
+		#endif
 
 		out = 0;
 		for ( uint64_t i = 0; i < Valgn.size(); ++i )
@@ -176,6 +184,8 @@ int main(int argc, char * argv[])
 		libmaus2::autoarray::AutoArray<uint64_t> cigstats(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CTHRES);
 		std::ostringstream intvstr;
 		std::ostringstream datastr;
+		std::ostringstream datanopadstr;
+		std::ostringstream nopadintvstr;
 		uint64_t prevend = 0;
 		uint64_t readoff = 0;
 
@@ -196,7 +206,6 @@ int main(int argc, char * argv[])
 			data = data.substr(algn.getFrontSoftClipping());
 			data = data.substr(0,data.size() - algn.getBackSoftClipping());
 
-
 			algn.getCigarStats(cigstats,false);
 
 			if ( po != prevend )
@@ -211,7 +220,10 @@ int main(int argc, char * argv[])
 			libmaus2::math::IntegerInterval<int64_t> rintv(contigstart,contigend-1);
 
 			datastr << data;
+			datanopadstr << data;
 			readoff += data.size();
+
+			nopadintvstr << data.size() << ";";
 
 			prevend = po + rl;
 
@@ -222,9 +234,11 @@ int main(int argc, char * argv[])
 			datastr << ref.substr(prevend);
 
 		double const ident = libmaus2::bambam::BamAlignmentDecoderBase::getIdentityFractionFromCigarStats(cigstats);
-		std::cerr << seqid << "\t" << reffn << "\t" << ident << "\t" << cigstats[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL] << "\t"
+		std::cerr << seqid << "\t" << refclipfn << "\t" << ident << "\t" << cigstats[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL] << "\t"
 			<< cigstats[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF] << "\t"
-			<< intvstr.str()
+			<< intvstr.str() << "\t"
+			<< datanopadstr.str() << "\t"
+			<< nopadintvstr.str()
 			<< std::endl;
 
 		std::cout << ">" << seqid << "\n" << datastr.str() << std::endl;

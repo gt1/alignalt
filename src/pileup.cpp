@@ -93,6 +93,13 @@ int main(int argc, char * argv[])
 					std::cerr << SV[i].second << " " << SV[i].first << std::endl;
 				#endif
 
+				std::cerr << GPVfilt[0].refpos << "\t" << GPVfilt[0].predif;
+				for ( uint64_t i = 0; i < SV.size(); ++i )
+				{
+					std::cerr << "\t" << SV[i].second << "," << SV[i].first;
+				}
+				std::cerr << std::endl;
+
 				if ( SV.size() == 1 && GPVfilt[0].predif == 0 )
 				{
 					while ( next < GPVfilt[0].refpos )
@@ -101,7 +108,7 @@ int main(int argc, char * argv[])
 						next += 1;
 					}
 
-					std::cerr << GPVfilt[0].refpos << "\t" << GPVfilt[0].predif << "\t" << SV[0].second << "\t" << SV[0].first << std::endl;
+					// std::cerr << GPVfilt[0].refpos << "\t" << GPVfilt[0].predif << "\t" << SV[0].second << "\t" << SV[0].first << std::endl;
 
 					std::cout.put(SV[0].second);
 					next += 1;

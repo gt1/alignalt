@@ -1,3 +1,9 @@
+alignalt (0.0.10-1) unstable; urgency=medium
+
+  * add pileupfastacombine and pileupfastaconsensus 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Wed, 27 Jan 2016 18:07:38 +0100
+
 alignalt (0.0.9-1) unstable; urgency=medium
 
   * add pileupfasta program 

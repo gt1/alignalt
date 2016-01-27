@@ -38,3 +38,4 @@ src/analyse
 src/fastatoupper
 src/realign
 src/pileup
+src/pileupfasta

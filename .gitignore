@@ -39,3 +39,5 @@ src/fastatoupper
 src/realign
 src/pileup
 src/pileupfasta
+src/pileupfastacombine
+src/pileupfastaconsensus

@@ -1,3 +1,9 @@
+alignalt (0.0.12-1) unstable; urgency=medium
+
+  * add filtfn option in analyse program 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 28 Jan 2016 14:59:19 +0100
+
 alignalt (0.0.11-1) unstable; urgency=medium
 
   * add filtering options in pileupfastacombine 

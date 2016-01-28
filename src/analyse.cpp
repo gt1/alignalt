@@ -19,6 +19,7 @@
 #include <libmaus2/util/ArgInfo.hpp>
 #include <libmaus2/math/IntegerInterval.hpp>
 #include <libmaus2/fastx/FastAStreamSet.hpp>
+#include <libmaus2/bambam/BamBlockWriterBaseFactory.hpp>
 
 struct AlignmentComparator
 {
@@ -79,12 +80,23 @@ int main(int argc, char * argv[])
 
 		std::string const reffn = arginfo.getUnparsedValue("reference",std::string());
 		std::string const seqid = arginfo.getUnparsedValue("seqid",std::string());
+		std::string const filtfn = arginfo.getUnparsedValue("filtfn",std::string());
 
 		std::string const refclipfn = libmaus2::util::OutputFileNameTools::endClip(reffn,&faclip[0]);
 
 		libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type Pdec(libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(arginfo));
 		libmaus2::bambam::BamAlignmentDecoder & decoder = Pdec->getDecoder();
 		libmaus2::bambam::BamHeader const & header = decoder.getHeader();
+
+		libmaus2::bambam::BamBlockWriterBase::unique_ptr_type Pblockwriter;
+		if ( filtfn.size() )
+		{
+			libmaus2::util::ArgInfo arginfoC = arginfo;
+			arginfoC.removeKey("O");
+			arginfoC.insertKey("O",filtfn);
+			libmaus2::bambam::BamBlockWriterBase::unique_ptr_type Tblockwriter(libmaus2::bambam::BamBlockWriterBaseFactory::construct(header,arginfoC));
+			Pblockwriter = UNIQUE_PTR_MOVE(Tblockwriter);
+		}
 
 		assert (header.getNumRef()) ;
 		std::string const ref = libmaus2::fastx::FastAStreamSet::getStreamAsString(reffn,header.getRefIDName(0));
@@ -193,6 +205,9 @@ int main(int argc, char * argv[])
 		{
 			libmaus2::bambam::BamAlignment const & algn = *Valgn[i];
 
+			if ( Pblockwriter )
+				Pblockwriter->writeAlignment(algn);
+
 			// interval on reference region
 			uint64_t const po = algn.getPos();
 			uint64_t const rl = algn.getReferenceLength();
@@ -247,6 +262,8 @@ int main(int argc, char * argv[])
 		for ( uint64_t i = 0; i < cigstats.size(); ++i )
 			std::cerr << i << " " << cigstats[i] << std::endl;
 		#endif
+
+		Pblockwriter.reset();
 	}
 	catch(std::exception const & ex)
 	{

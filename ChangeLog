@@ -1,3 +1,9 @@
+alignalt (0.0.11-1) unstable; urgency=medium
+
+  * add filtering options in pileupfastacombine 
+
+ -- German Tischler <gt1@sanger.ac.uk>  Thu, 28 Jan 2016 13:22:01 +0100
+
 alignalt (0.0.10-1) unstable; urgency=medium
 
   * add pileupfastacombine and pileupfastaconsensus 

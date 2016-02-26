@@ -28,9 +28,11 @@ struct AlignmentComparator
 		std::string const name_a = A->getName();
 		std::string const name_b = B->getName();
 
+		// compare by name
 		if ( name_a != name_b )
 			return name_a < name_b;
 
+		// compare by reference length
 		int32_t const ref_len_a = A->isMapped() ? A->getReferenceLength() : -1;
 		int32_t const ref_len_b = B->isMapped() ? B->getReferenceLength() : -1;
 
@@ -38,12 +40,14 @@ struct AlignmentComparator
 		if ( ref_len_a != ref_len_b )
 			return ref_len_a > ref_len_b;
 
+		// compare by reference id
 		int32_t const ref_id_a = A->getRefID();
 		int32_t const ref_id_b = B->getRefID();
 
 		if ( ref_id_a != ref_id_b )
 			return ref_id_a < ref_id_b;
 
+		// compare by forward/reverse
 		int const a_is_rev = A->isReverse();
 		int const b_is_rev = B->isReverse();
 
@@ -82,12 +86,15 @@ int main(int argc, char * argv[])
 		std::string const seqid = arginfo.getUnparsedValue("seqid",std::string());
 		std::string const filtfn = arginfo.getUnparsedValue("filtfn",std::string());
 
+		// file name prefix
 		std::string const refclipfn = libmaus2::util::OutputFileNameTools::endClip(reffn,&faclip[0]);
 
+		// set up decoder for input
 		libmaus2::bambam::BamAlignmentDecoderWrapper::unique_ptr_type Pdec(libmaus2::bambam::BamMultiAlignmentDecoderFactory::construct(arginfo));
 		libmaus2::bambam::BamAlignmentDecoder & decoder = Pdec->getDecoder();
 		libmaus2::bambam::BamHeader const & header = decoder.getHeader();
 
+		// set up output file for filtered alignments
 		libmaus2::bambam::BamBlockWriterBase::unique_ptr_type Pblockwriter;
 		if ( filtfn.size() )
 		{
@@ -98,17 +105,17 @@ int main(int argc, char * argv[])
 			Pblockwriter = UNIQUE_PTR_MOVE(Tblockwriter);
 		}
 
+		// get name of reference sequence
 		assert (header.getNumRef()) ;
 		std::string const ref = libmaus2::fastx::FastAStreamSet::getStreamAsString(reffn,header.getRefIDName(0));
-		// std::cerr << ref << std::endl;
 
-		//std::cerr << header.text << std::endl;
 		std::vector<libmaus2::bambam::BamAlignment::shared_ptr_type > Valgn;
 		libmaus2::autoarray::AutoArray<libmaus2::bambam::cigar_operation> cigopin;
 		libmaus2::autoarray::AutoArray<char> readdata;
 		libmaus2::bambam::BamAlignment::D_array_type T;
 		libmaus2::bambam::BamFormatAuxiliary formataux;
 
+		// recode the cigar strings from M to =/X operations
 		while ( decoder.readAlignment() )
 		{
 			libmaus2::bambam::BamAlignment const & algn = decoder.getAlignment();
@@ -134,8 +141,10 @@ int main(int argc, char * argv[])
 			}
 		}
 
+		// sort the alignments
 		std::sort(Valgn.begin(),Valgn.end(),AlignmentComparator());
 
+		// keep longest alignment for each contig
 		uint64_t low = 0;
 		uint64_t out = 0;
 		while ( low < Valgn.size() )
@@ -156,15 +165,7 @@ int main(int argc, char * argv[])
 
 		Valgn.resize(out);
 
-		#if 0
-		for ( uint64_t i = 0; i < Valgn.size(); ++i )
-		{
-			libmaus2::bambam::BamAlignment const & algn = *Valgn[i];
-			uint64_t const po = algn.getPos();
-			uint64_t const rl = algn.getReferenceLength();
-		}
-		#endif
-
+		// assign contigs from long to short, non overlapping
 		out = 0;
 		for ( uint64_t i = 0; i < Valgn.size(); ++i )
 		{
@@ -179,8 +180,6 @@ int main(int argc, char * argv[])
 				libmaus2::math::IntegerInterval<int64_t> nintv(n_start,n_end);
 				libmaus2::math::IntegerInterval<int64_t> ints = libmaus2::math::IntegerInterval<int64_t>::intersection(prev,nintv);
 
-				// std::cerr << prev << " " << nintv << " " << ints << std::endl;
-
 				if ( ! ints.isEmpty() )
 					overlapfree = false;
 			}
@@ -191,6 +190,7 @@ int main(int argc, char * argv[])
 
 		Valgn.resize(out);
 
+		// sort alignments by position
 		std::sort(Valgn.begin(),Valgn.end(),PosComparator());
 
 		libmaus2::autoarray::AutoArray<uint64_t> cigstats(libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CTHRES);
@@ -201,6 +201,7 @@ int main(int argc, char * argv[])
 		uint64_t prevend = 0;
 		uint64_t readoff = 0;
 
+		// write filtered alignments, keep track of cigar string statistics and extract aligned contigs
 		for ( uint64_t i = 0; i < Valgn.size(); ++i )
 		{
 			libmaus2::bambam::BamAlignment const & algn = *Valgn[i];
@@ -248,6 +249,7 @@ int main(int argc, char * argv[])
 		if ( prevend != ref.size() )
 			datastr << ref.substr(prevend);
 
+		// compute identity
 		double const ident = libmaus2::bambam::BamAlignmentDecoderBase::getIdentityFractionFromCigarStats(cigstats);
 		std::cerr << seqid << "\t" << refclipfn << "\t" << ident << "\t" << cigstats[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CEQUAL] << "\t"
 			<< cigstats[libmaus2::bambam::BamFlagBase::LIBMAUS2_BAMBAM_CDIFF] << "\t"
@@ -256,6 +258,7 @@ int main(int argc, char * argv[])
 			<< nopadintvstr.str()
 			<< std::endl;
 
+		// write concatenation of aligned contigs
 		std::cout << ">" << seqid << "\n" << datastr.str() << std::endl;
 
 		#if 0

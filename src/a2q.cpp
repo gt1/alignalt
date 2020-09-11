@@ -42,9 +42,9 @@ int main(int argc, char *argv[])
 		}
 
 		if ( arginfo.restargs[0] == "-" )
-			reader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type("/dev/stdin")));
+			reader = std::move(reader_ptr_type(new reader_type("/dev/stdin")));
 		else
-			reader = UNIQUE_PTR_MOVE(reader_ptr_type(new reader_type(arginfo.restargs[0])));
+			reader = std::move(reader_ptr_type(new reader_type(arginfo.restargs[0])));
 
 		pattern_type pattern;
 		q_pattern_type q_pattern;

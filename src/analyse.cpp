@@ -102,7 +102,7 @@ int main(int argc, char * argv[])
 			arginfoC.removeKey("O");
 			arginfoC.insertKey("O",filtfn);
 			libmaus2::bambam::BamBlockWriterBase::unique_ptr_type Tblockwriter(libmaus2::bambam::BamBlockWriterBaseFactory::construct(header,arginfoC));
-			Pblockwriter = UNIQUE_PTR_MOVE(Tblockwriter);
+			Pblockwriter = std::move(Tblockwriter);
 		}
 
 		// get name of reference sequence

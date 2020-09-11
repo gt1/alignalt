@@ -17,7 +17,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <libmaus2/fastx/StreamFastAReader.hpp>
-#include <libmaus2/regex/PosixRegex.hpp>
 
 struct TypeAndCoordinates
 {

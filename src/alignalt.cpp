@@ -20,7 +20,6 @@
 
 #include <libmaus2/alignment/SimpleLocalAligner.hpp>
 
-#include <libmaus2/aio/CheckedInputStream.hpp>
 #include <libmaus2/aio/OutputStreamInstance.hpp>
 #include <libmaus2/bambam/BamFlagBase.hpp>
 #include <libmaus2/bambam/BamHeader.hpp>
@@ -256,7 +255,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 		std::cerr << "\n" << fqfn << "\n\n";
 
 		// open queries
-		libmaus2::aio::CheckedInputStream CIS(fqfn);
+		libmaus2::aio::InputStreamInstance CIS(fqfn);
 		libmaus2::fastx::StreamFastQReaderWrapper queriesIn(CIS);
 		libmaus2::fastx::StreamFastQReaderWrapper::pattern_type pattern;
 
@@ -320,7 +319,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 			};
 
 			// alignment vector lock
-			libmaus2::parallel::OMPLock BLIlock;
+			libmaus2::parallel::StdMutex BLIlock;
 			// all alignments vector
 			std::vector<ScoreBucketEntry> allBLIs;
 
@@ -349,7 +348,7 @@ int alignalt(libmaus2::util::ArgInfo const & arginfo, std::string const suffix)
 
 				// store alignments
 				{
-					libmaus2::parallel::ScopeLock SL(BLIlock);
+					libmaus2::parallel::StdMutex::scope_lock_type SL(BLIlock);
 
 					for ( uint64_t i = 0; i < BLIs.size(); ++i )
 						if (
